@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
@@ -145,11 +146,20 @@ public class AUTOTest1 extends robotBase{
 
     @Override
     protected void robotStart(){
+        limelight.updateRobotOrientation(Math.toDegrees(drive.getRawExternalHeading()));
+        LLResult result = limelight.getLatestResult();
+        if (result.isValid()) {
+            telemetry.addData("tx", result.getBotpose_MT2());
+            telemetry.addData("deg", Math.toDegrees(drive.getRawExternalHeading()));
+            telemetry.addData("ty", result.getTy());
+            telemetry.addData("tync", result.getTyNC());
+        }
+        telemetry.update();
 
-        drive.update();
-        armTurn2angle(armTarget);
-        slideToPosition(slideTarget);
-        wristToPosition(lift, turn);
+        //drive.update();
+//        armTurn2angle(armTarget);
+//        slideToPosition(slideTarget);
+//        wristToPosition(lift, turn);
 
 
 

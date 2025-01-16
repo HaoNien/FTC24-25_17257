@@ -15,7 +15,7 @@ public class AUTOTest extends robotBase{
 
     @Override
     protected void robotInit() {
-        Pose2d startPose = new Pose2d(-10, 60, Math.toRadians(270));
+        Pose2d startPose = new Pose2d(36, 60, Math.toRadians(270));
         drive.setPoseEstimate(startPose);
         //armTarget= 45;
         slideTarget = 40;
@@ -23,110 +23,56 @@ public class AUTOTest extends robotBase{
         turn = 0;
         Claw.setPosition(claw_Close);
         TrajectorySequence trajSeq = drive.trajectorySequenceBuilder(startPose)
+                .waitSeconds(1)
+                .addTemporalMarker(() -> {
+                    armTarget = 93;
+                    lift = 20;
 
-                .addTemporalMarker(() -> {
-                    lift=50;
-                    armTarget= 37;
-                    slideTarget = 75;
+                    slideTarget = smax;
+                    turn = 0;
                 })
-
-                .forward(27)
-                .addTemporalMarker(() -> {        Claw.setPosition(claw_Open);
-                })
-                .back(20)
-                .addTemporalMarker(() -> {
-                    armTarget=5;
-                    lift=-90;
-                    turn=45;
-                })
-                .turn(Math.toRadians(-45))
-                .splineTo(new Vector2d(-29,41),Math.toRadians(220))
-                .addTemporalMarker(() -> {
-                    armTarget=0;
-                    lift=-90;
-                    turn=45;
-                })
-
-                .UNSTABLE_addTemporalMarkerOffset(0.3, () -> {Claw.setPosition(claw_Close);
-                })
-                .UNSTABLE_addTemporalMarkerOffset(0.5, () -> {
-                    armTarget=5;
-                })
-                .waitSeconds(0.5)
-                .turn(Math.toRadians(-90))
-                .addTemporalMarker(() -> {
+                .waitSeconds(1)
+                .splineToLinearHeading(new Pose2d(58,56,Math.toRadians(225)),Math.toRadians(270))
+                .waitSeconds(1)
+                .addTemporalMarker(() ->{
                     Claw.setPosition(claw_Open);
-
+                    lift = 40;
+                })
+                .waitSeconds(1)
+                .addTemporalMarker(() ->{
+                    armTarget = 45;
+                    slideTarget = smax0;
+                    lift = -90;
 
                 })
                 .waitSeconds(0.5)
-
-                .turn(Math.toRadians(90))
-                .strafeTo(new Vector2d(-39,41))
-                .addTemporalMarker(() -> {armTarget=0;})
-                .UNSTABLE_addTemporalMarkerOffset(0.1, () -> {Claw.setPosition(claw_Close);
+                .addTemporalMarker(() ->{
+                    armTarget = 5;
+                    slideTarget = smax0;
                 })
-                .UNSTABLE_addTemporalMarkerOffset(0.5, () -> {
-                    armTarget=5;
-                })
-                .waitSeconds(0.5)
-                .turn(Math.toRadians(-90))
-                .addTemporalMarker(() -> {
-                    Claw.setPosition(claw_Open);
-
-
-
+                .splineToLinearHeading(new Pose2d(56,47,Math.toRadians(250)),Math.toRadians(270))
+                .addTemporalMarker(() ->{
+                    armTarget = 0;
                 })
                 .waitSeconds(0.5)
-                .turn(Math.toRadians(90))
-
-
-                .strafeTo(new Vector2d(-49,41))
-                .addTemporalMarker(() -> {armTarget=0;})
-                .UNSTABLE_addTemporalMarkerOffset(0.1, () -> {Claw.setPosition(claw_Close);
-                })
-                .UNSTABLE_addTemporalMarkerOffset(0.5, () -> {
-
-                    armTarget=5;
-                    slideTarget= 40;
-                })
-                .waitSeconds(0.5)
-                .strafeTo(new Vector2d(-49,51))
-                .turn(Math.toRadians(-90))
-                .addTemporalMarker(() -> {
-
-                    Claw.setPosition(claw_Open);
-                })
-                .UNSTABLE_addTemporalMarkerOffset(0.5, () -> {
-                armTarget=20;
-                lift = -10;
-                turn=0;
-                })
-                .waitSeconds(0.5)
-                .turn(Math.toRadians(-45))
-                .forward(5)
-                .addTemporalMarker(() -> {
+                .addTemporalMarker(() ->{
                     Claw.setPosition(claw_Close);
-                })
-                .UNSTABLE_addTemporalMarkerOffset(0.5, () -> {
-                    armTarget = 90;
-                    slideTarget = 52;
-                    lift = 90;
-                })
-                .strafeTo(new Vector2d(-10, 35))
 
+                })
+                .waitSeconds(.3)
                 .addTemporalMarker(() -> {
+                    armTarget = 93;
+                    lift = 20;
 
+                    slideTarget = smax;
+                    turn = 0;
                 })
-
-
-
-
-                //.strafeLeft(20)
-                //.strafeTo(new Vector2d(-38, 12))
-                //.strafeTo(new Vector2d(-45, 50))
-                //.strafeTo(new Vector2d(-45, 12))
-
+                .splineToLinearHeading(new Pose2d(58,58,Math.toRadians(225)),Math.toRadians(270))
+                .waitSeconds(1)
+                .addTemporalMarker(() ->{
+                    Claw.setPosition(claw_Open);
+                    lift = 40;
+                })
 
                 .build();
 
@@ -143,6 +89,8 @@ public class AUTOTest extends robotBase{
         armPosNow = armL.getCurrentPosition() / arm2deg; // 讀取手臂當前角度
         armTurn2angle(45);                       // 將手臂維持在目標角度
 
+        slideToPosition(slideTarget);
+        wristToPosition(lift, turn);
 
     }
 

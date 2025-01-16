@@ -9,6 +9,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.hardware.ServoEx;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -41,6 +42,9 @@ public abstract class robotBase extends OpMode {
     protected Servo Claw;
 
     protected Encoder armEnc;
+
+    protected Limelight3A limelight;
+
     private PIDController ArmPID = new PIDController(0, 0, 0);
     private PIDController SlidePID = new PIDController(0, 0, 0);
     //private PIDController WristLeftPID = new PIDController(0, 0, 0);
@@ -149,6 +153,9 @@ public abstract class robotBase extends OpMode {
         armEnc = new Encoder(hardwareMap.get(DcMotorEx.class, "armR"));
         armEnc.setDirection(Encoder.Direction.REVERSE);
 
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.pipelineSwitch(1);
+
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slide.setPower(0);
         slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -160,6 +167,9 @@ public abstract class robotBase extends OpMode {
         armL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         armR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         armR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        limelight.start();
+
         //armPosNow = armL.getCurrentPosition() / arm2deg;
         robotInit();
         initDone = true;
@@ -173,6 +183,10 @@ public abstract class robotBase extends OpMode {
     }
     public void loop(){
         robotStart();
+
+    }
+    public void stop(){
+        limelight.stop();
 
     }
 

@@ -103,6 +103,7 @@ public class PotatoLinOpMode extends robotBase {
         } else if (!gamepad2.left_stick_button) {
             togglePressed = false; // 重置防抖動
         }
+
         //slide
         double gp2_r_Y = gamepad2.right_stick_y;
 
@@ -114,21 +115,14 @@ public class PotatoLinOpMode extends robotBase {
 
 
 
-        double gp2_l_Y = gamepad2.left_stick_y;
+        double gp2_l_Y = -gamepad2.left_stick_y;
 
         if (gp2_l_Y < -0.3 || gp2_l_Y > 0.3) armTarget = armPosNow + (gp2_l_Y * arm_Speed);
         armTarget = clamp(armTarget, armBottomLimit, armUpLimit);
 
         armTurn2angle(armTarget);
 
-//            if (gamepad2.a) {
-//                lift = -90;
-//                turn = 0;
-//            }
-//            if (gamepad2.x) {
-//                lift = 0;
-//                turn = 0;
-//            }
+
 
         if (gamepad2.dpad_up) lift += 5;
         else if (gamepad2.dpad_down) lift -= 5;
@@ -147,14 +141,14 @@ public class PotatoLinOpMode extends robotBase {
 
         double axial, lateral, yaw;
         if (Math.abs(gp1ly) < 0.7 && Math.abs(gp1ly) > 0.1) axial = gp1ly / 2;
-        else if (Math.abs(gp1ly) < 0.1) axial=0;
+        //else if (Math.abs(gp1ly) < 0.1) axial=0;
         else axial = gp1ly;
         if (Math.abs(gp1lx) < 0.7 && Math.abs(gp1lx) > 0.1) lateral = gp1lx / 2;
-        else if (Math.abs(gp1lx) < 0.1) lateral=0;
+        //else if (Math.abs(gp1lx) < 0.1) lateral=0;
         else lateral = gp1lx;
         if (Math.abs(gp1rx) < 0.7 && Math.abs(gp1rx) > 0.1)
             yaw = (gp1rx) + (gp1ltr / 3) - (gp1rtr / 3);
-        else if (Math.abs(gp1lx) < 0.1) yaw =0;
+        //else if (Math.abs(gp1lx) < 0.1) yaw =0;
         else yaw = gp1rx*1.33 + (gp1ltr / 3) - (gp1rtr / 3);
         drive.setDrivePower(new Pose2d(axial, lateral, yaw));
 
@@ -169,9 +163,7 @@ public class PotatoLinOpMode extends robotBase {
             lastTime = currentTime; // 重置時間戳
         }
 
-        //telemetry.addData("pow", drive.getWheelVelocities());
 
-        //telemetry.addData("slide", slide.getCurrentPosition());
         telemetry.addData("slideCM", slidePosNow);
         telemetry.addData("slideTAR", slideTarget);
         telemetry.addData("slidePOW", slidePower);
@@ -189,7 +181,7 @@ public class PotatoLinOpMode extends robotBase {
 
 
         telemetry.update();
-    }//start
+    }
 
     // **B 按鈕狀態機邏輯**
     private void manageStateMachineB() {
@@ -325,7 +317,7 @@ public class PotatoLinOpMode extends robotBase {
         //高塔模式
         switch (currentStateY) {
             case STATE_1:
-                armTarget = 10;
+                armTarget = 6;
                 slideTarget = 70;
                 lift = 0;
                 turn = 0;
@@ -333,7 +325,7 @@ public class PotatoLinOpMode extends robotBase {
 
                 break;
             case STATE_2:
-                armTarget = 10;
+                armTarget = 6;
                 lift = -90;
                 turn = 0;
 
@@ -350,7 +342,7 @@ public class PotatoLinOpMode extends robotBase {
                 break;
             case STATE_5:
                 armTarget = 90;
-                lift = 20;
+                lift = 30;
                 turn = 0;
                 slideTarget = smax;
                 break;
@@ -421,7 +413,7 @@ public class PotatoLinOpMode extends robotBase {
         switch (currentStateX) {
             case STATE_1:
                 slideTarget = 70;
-                armTarget = 10;
+                armTarget = 6;
                 lift = -90;
                 turn = 0;
                 Claw.setPosition(claw_Open);
@@ -501,12 +493,12 @@ public class PotatoLinOpMode extends robotBase {
     }
 
     private void executeStateLogicA() {
-        currentStateY = RobotStateY.STATE_1; // 重置另一個模式的狀態
+        currentStateY = RobotStateY.STATE_2; // 重置另一個模式的狀態
 
         // 地面收集模式
         switch (currentStateA) {
             case STATE_1:
-                armTarget = 10;
+                armTarget = 6;
                 slideTarget = 70;
                 lift = 0;
                 turn = 0;
@@ -516,7 +508,7 @@ public class PotatoLinOpMode extends robotBase {
                 break;
 
             case STATE_2:
-                armTarget = 10;
+                armTarget = 6;
                 slideTarget = 70;
                 lift = 0;
                 turn = 0;
