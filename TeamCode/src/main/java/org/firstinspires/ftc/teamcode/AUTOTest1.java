@@ -1,18 +1,39 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.util.Size;
+
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
+import org.firstinspires.ftc.teamcode.visionprocessor.SampleVisionProcessor;
+import org.firstinspires.ftc.vision.VisionPortal;
 
-@Autonomous
+@TeleOp
 public class AUTOTest1 extends robotBase{
     //Pose2d startPose = new Pose2d(-8, 60, Math.toRadians(90));
-
+    SampleVisionProcessor samplevisionprocessor;
+    VisionPortal visionPortal;
     @Override
     protected void robotInit() {
+
+         samplevisionprocessor=new SampleVisionProcessor();
+
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
+                .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
+                .addProcessor(samplevisionprocessor)
+                .setCameraResolution(new Size(320, 240))
+                .enableLiveView(true)
+                .setAutoStopLiveView(true)
+                .build();
+        visionPortal.stopLiveView();
+
+
         Pose2d startPose = new Pose2d(-10, 60, Math.toRadians(270));
         drive.setPoseEstimate(startPose);
         //armTarget= 45;
@@ -129,7 +150,7 @@ public class AUTOTest1 extends robotBase{
                 .build();
 
         drive.followTrajectorySequenceAsync(trajSeq);
-        telemetry.addData("Arm Po000000000000000000000000000000000000000000000","");
+        telemetry.addData("Arm Po0",samplevisionprocessor.getTargetAngle());
         telemetry.update();
 
 
@@ -140,6 +161,7 @@ public class AUTOTest1 extends robotBase{
     protected void robotInitLoop() {
         armPosNow = armL.getCurrentPosition() / arm2deg; // 讀取手臂當前角度
         armTurn2angle(45);                       // 將手臂維持在目標角度
+        telemetry.addData("Angle",samplevisionprocessor.getTargetAngle());
 
 
     }
@@ -148,18 +170,31 @@ public class AUTOTest1 extends robotBase{
     protected void robotStart(){
         limelight.updateRobotOrientation(Math.toDegrees(drive.getRawExternalHeading()));
         LLResult result = limelight.getLatestResult();
+
+        if(gamepad2.a){
+            visionPortal.resumeStreaming();
+
+        }
+        if(gamepad2.b){
+            visionPortal.resumeStreaming();
+        }
         if (result.isValid()) {
             telemetry.addData("tx", result.getBotpose_MT2());
+            telemetry.addData("tx", convertToPose2d(result.getBotpose_MT2().toString()));
             telemetry.addData("deg", Math.toDegrees(drive.getRawExternalHeading()));
+
             telemetry.addData("ty", result.getTy());
             telemetry.addData("tync", result.getTyNC());
         }
-        telemetry.update();
+        telemetry.addData("Angle",samplevisionprocessor.getTargetAngle());
 
+        telemetry.update();
+        turn=(samplevisionprocessor.getTargetAngle()-90);
+        armTarget=10;
         //drive.update();
-//        armTurn2angle(armTarget);
+       armTurn2angle(armTarget);
 //        slideToPosition(slideTarget);
-//        wristToPosition(lift, turn);
+        wristToPosition(lift, turn);
 
 
 

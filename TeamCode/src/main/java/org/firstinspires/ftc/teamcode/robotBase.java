@@ -7,6 +7,7 @@ import androidx.core.content.pm.PermissionInfoCompat;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.hardware.ServoEx;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -23,11 +24,13 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.util.Encoder;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.VisionProcessor;
 
 import java.util.List;
 
 @Config
-public abstract class robotBase extends OpMode {
+public abstract class robotBase extends LinearOpMode {
     protected SampleMecanumDrive drive;
 
     protected DcMotorEx slide;
@@ -44,6 +47,7 @@ public abstract class robotBase extends OpMode {
     protected Encoder armEnc;
 
     protected Limelight3A limelight;
+    protected VisionProcessor samplevisionprocessor;
 
     private PIDController ArmPID = new PIDController(0, 0, 0);
     private PIDController SlidePID = new PIDController(0, 0, 0);
@@ -52,9 +56,9 @@ public abstract class robotBase extends OpMode {
 
     /*------------------ARM_PIDF-----------------------*/
     public static double armTarget = 45;
-    public static double armP = 0.08;
+    public static double armP = 0.1;
 
-    public static double armP_hang = 0.1;
+    public static double armP_hang = 1.5;
 
     public static double armI = 0.1;
     public static double armD = 0.004;
@@ -124,7 +128,7 @@ public abstract class robotBase extends OpMode {
     public boolean initDone=false;
 
     @Override
-    public void init(){
+    public void runOpMode(){
 
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
 
@@ -171,24 +175,25 @@ public abstract class robotBase extends OpMode {
         limelight.start();
 
         //armPosNow = armL.getCurrentPosition() / arm2deg;
+
         robotInit();
         initDone = true;
         telemetry.addData("init","done");
         telemetry.update();
-    }
-    public void init_loop(){
-        if(initDone){
-            robotInitLoop();
-        }
-    }
-    public void loop(){
-        robotStart();
+        while (!isStarted() && !isStopRequested()) {
 
-    }
-    public void stop(){
+            robotInitLoop();
+            telemetry.addData("Status", "Waiting for start...");
+            telemetry.update();
+            //sleep(50); // 避免頻繁刷新，加入短暫延遲
+        }
+        while (opModeIsActive()){
+            robotStart();
+        }
         limelight.stop();
 
     }
+
 
 
     protected abstract void robotInit();
@@ -207,7 +212,8 @@ public abstract class robotBase extends OpMode {
 
             armkP = armP_hang;
             if (!gamepad1.isRumbling()) gamepad1.runRumbleEffect(effect);
-        } else {
+        }
+        else {
             gamepad1.stopRumble();
             armkP = armP;
 
@@ -220,7 +226,8 @@ public abstract class robotBase extends OpMode {
 
         if (isHangingMode) {
             armOutput = clamp(armOutput, -armPowerMax, armPowerMax); // 移除下降限制
-        } else {
+        }
+        else {
             if (armPosNow < 90) armOutput = clamp(armOutput, armPowerMin, armPowerMax);
             else armOutput = Math.min(armOutput, armPowerMax);
         }
@@ -236,14 +243,15 @@ public abstract class robotBase extends OpMode {
         slidePosNow = (slide.getCurrentPosition() / slide2lenth) * 2 + smin;
 
         if (armPosNow < 60)
-            slidePos = Math.max(Math.min(slidePos, Math.min(slidePos, smax0)), smin);
+            slidePos = Math.max(Math.min(slidePos, smax0), smin);
         else
             slidePos = Math.max(Math.min(slidePos, smax), smin);
 
         double slidekp;
         if (isHangingMode) {
             slidekp = slideP_hang;
-        } else
+        }
+        else
             slidekp = slideP;
 
         SlidePID.setPID(slidekp, slideI, slideD);
@@ -298,6 +306,28 @@ public abstract class robotBase extends OpMode {
         FrontL.setPower(powerLeft);
         FrontR.setPower(powerRight);
     }*/
+
+        public  Pose2d convertToPose2d(String telemetryOutput) {
+            // 提取 position 和 yaw
+            String positionData = telemetryOutput.split("position=\\(")[1].split("\\)")[0];
+            String orientationData = telemetryOutput.split("yaw=")[1].split(",")[0];
+
+            // 分割位置數據 (x, y, z)
+            String[] positionParts = positionData.split(" ");
+            double xMeters = Double.parseDouble(positionParts[0]);
+            double yMeters = Double.parseDouble(positionParts[1]);
+
+            // 提取 yaw 角度
+            double yawDegrees = Double.parseDouble(orientationData);
+
+            // 單位轉換
+            double xInches = xMeters * 39.3701;
+            double yInches = yMeters * 39.3701;
+            double yawRadians = Math.toRadians(yawDegrees);
+
+            // 返回 Pose2d
+            return new Pose2d(xInches, yInches, yawRadians);
+        }
 
 
     private double calculateAngleError(double target, double current) {
