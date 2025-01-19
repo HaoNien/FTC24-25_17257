@@ -1,15 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.util.Size;
-
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.VisionProcessor;
 
 @Autonomous
 public class AUTOLeft extends robotBase{
@@ -17,49 +11,69 @@ public class AUTOLeft extends robotBase{
 
     @Override
     protected void robotInit() {
-        Pose2d startPose = new Pose2d(-10, 60, Math.toRadians(90));
+        Pose2d startPose = new Pose2d(36, 60, Math.toRadians(270));
         drive.setPoseEstimate(startPose);
-        armTarget= 45;
+        //armTarget= 45;
         slideTarget = 40;
         lift=-90;
         turn = 0;
         Claw.setPosition(claw_Close);
         TrajectorySequence trajSeq = drive.trajectorySequenceBuilder(startPose)
+                .waitSeconds(1)
+                .addTemporalMarker(() -> {
+                    armTarget = 93;
+                    lift = 20;
 
-                .setReversed(true)
-                .back(27)
-                .forward(5)
-                //.turn(Math.toRadians(-45))
+                    slideTarget = smax;
+                    turn = 0;
+                })
+                .waitSeconds(1)
+                .splineToLinearHeading(new Pose2d(58,56,Math.toRadians(225)),Math.toRadians(270))
+                .waitSeconds(1)
+                .addTemporalMarker(() ->{
+                    Claw.setPosition(claw_Open);
+                    lift = 40;
+                })
+                .waitSeconds(1)
+                .addTemporalMarker(() ->{
+                    armTarget = 45;
+                    slideTarget = smax0;
+                    lift = -90;
 
-                .splineToConstantHeading(new Vector2d(-34,27),Math.toRadians(270))
-                .waitSeconds(0.1)
-                .splineToConstantHeading(new Vector2d(-39,10),Math.toRadians(180))
-                //.strafeTo(new Vector2d(-42,10))
-                .splineToConstantHeading(new Vector2d(-43,55),Math.toRadians(90))
-                .waitSeconds(0.1)
+                })
+                .waitSeconds(0.5)
+                .addTemporalMarker(() ->{
+                    armTarget = 5;
+                    slideTarget = smax0;
+                })
+                .splineToLinearHeading(new Pose2d(56,47,Math.toRadians(250)),Math.toRadians(270))
+                .addTemporalMarker(() ->{
+                    armTarget = 0;
+                })
+                .waitSeconds(0.5)
+                .addTemporalMarker(() ->{
+                    Claw.setPosition(claw_Close);
 
+                })
+                .waitSeconds(.3)
+                .addTemporalMarker(() -> {
+                    armTarget = 93;
+                    lift = 20;
 
-                .splineToConstantHeading(new Vector2d(-48,13),Math.toRadians(180))
-                .splineToConstantHeading(new Vector2d(-55,50),Math.toRadians(90))
-                .waitSeconds(0.1)
-                .splineToConstantHeading(new Vector2d(-60,13),Math.toRadians(180))
-
-
-                .splineToConstantHeading(new Vector2d(-60,50),Math.toRadians(90))
-
-
-
-
-                //.strafeLeft(20)
-                //.strafeTo(new Vector2d(-38, 12))
-                //.strafeTo(new Vector2d(-45, 50))
-                //.strafeTo(new Vector2d(-45, 12))
-
+                    slideTarget = smax;
+                    turn = 0;
+                })
+                .splineToLinearHeading(new Pose2d(58,58,Math.toRadians(225)),Math.toRadians(270))
+                .waitSeconds(1)
+                .addTemporalMarker(() ->{
+                    Claw.setPosition(claw_Open);
+                    lift = 40;
+                })
 
                 .build();
 
         drive.followTrajectorySequenceAsync(trajSeq);
-        telemetry.addData("Arm Po000000000000000000000000000000000000000000000","");
+        telemetry.addData("","");
         telemetry.update();
 
 
@@ -71,6 +85,8 @@ public class AUTOLeft extends robotBase{
         armPosNow = armL.getCurrentPosition() / arm2deg; // 讀取手臂當前角度
         armTurn2angle(45);                       // 將手臂維持在目標角度
 
+        slideToPosition(slideTarget);
+        wristToPosition(lift, turn);
 
     }
 

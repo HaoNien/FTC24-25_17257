@@ -171,13 +171,7 @@ public class AUTOTest1 extends robotBase{
         limelight.updateRobotOrientation(Math.toDegrees(drive.getRawExternalHeading()));
         LLResult result = limelight.getLatestResult();
 
-        if(gamepad2.a){
-            visionPortal.resumeStreaming();
 
-        }
-        if(gamepad2.b){
-            visionPortal.resumeStreaming();
-        }
         if (result.isValid()) {
             telemetry.addData("tx", result.getBotpose_MT2());
             telemetry.addData("tx", convertToPose2d(result.getBotpose_MT2().toString()));
@@ -189,7 +183,7 @@ public class AUTOTest1 extends robotBase{
         telemetry.addData("Angle",samplevisionprocessor.getTargetAngle());
 
         telemetry.update();
-        turn=(samplevisionprocessor.getTargetAngle()-90);
+        turn=(samplevisionprocessor.getTargetAngle()-90)*-1;
         armTarget=10;
         //drive.update();
        armTurn2angle(armTarget);
