@@ -11,6 +11,8 @@ public class AUTOLeft extends robotBase{
 
     @Override
     protected void robotInit() {
+        motorReset();
+
         Pose2d startPose = new Pose2d(36, 60, Math.toRadians(270));
         drive.setPoseEstimate(startPose);
         //armTarget= 45;

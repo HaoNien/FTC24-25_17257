@@ -12,6 +12,9 @@ public class AUTORight extends robotBase{
 
     @Override
     protected void robotInit() {
+        motorResetDone=false;
+        motorReset();
+
         Pose2d startPose = new Pose2d(-10, 60, Math.toRadians(90));
         drive.setPoseEstimate(startPose);
         armTarget= 45;

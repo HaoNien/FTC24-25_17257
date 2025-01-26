@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.visionprocessor.SampleVisionProcessor;
 import org.firstinspires.ftc.vision.VisionPortal;
 
-@TeleOp
+@Autonomous
 public class AUTOTest1 extends robotBase{
     //Pose2d startPose = new Pose2d(-8, 60, Math.toRadians(90));
     SampleVisionProcessor samplevisionprocessor;
@@ -21,7 +21,9 @@ public class AUTOTest1 extends robotBase{
     @Override
     protected void robotInit() {
 
-         samplevisionprocessor=new SampleVisionProcessor();
+
+
+        samplevisionprocessor=new SampleVisionProcessor();
 
         visionPortal = new VisionPortal.Builder()
                 .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
@@ -45,7 +47,7 @@ public class AUTOTest1 extends robotBase{
 
                 .addTemporalMarker(() -> {
                     lift=50;
-                    armTarget= 37;
+                    armTarget= 36.55;
                     slideTarget = 75;
                 })
 
@@ -56,14 +58,18 @@ public class AUTOTest1 extends robotBase{
                 .addTemporalMarker(() -> {
                     armTarget=5;
                     lift=-90;
-                    turn=45;
+                    turn=65;
                 })
                 .turn(Math.toRadians(-45))
-                .splineTo(new Vector2d(-29,41),Math.toRadians(220))
+
+//                ______________________第一點_________________
+                .splineTo(new Vector2d(-30,38.5),Math.toRadians(220))
+                .waitSeconds(0.5)
+
                 .addTemporalMarker(() -> {
                     armTarget=0;
                     lift=-90;
-                    turn=45;
+                    turn=65;
                 })
 
                 .UNSTABLE_addTemporalMarkerOffset(0.3, () -> {Claw.setPosition(claw_Close);
@@ -75,13 +81,14 @@ public class AUTOTest1 extends robotBase{
                 .turn(Math.toRadians(-90))
                 .addTemporalMarker(() -> {
                     Claw.setPosition(claw_Open);
-
-
                 })
                 .waitSeconds(0.5)
 
                 .turn(Math.toRadians(90))
-                .strafeTo(new Vector2d(-39,41))
+//                _______________________第二點
+                .strafeTo(new Vector2d(-39,38.5))
+                .waitSeconds(0.5)
+
                 .addTemporalMarker(() -> {armTarget=0;})
                 .UNSTABLE_addTemporalMarkerOffset(0.1, () -> {Claw.setPosition(claw_Close);
                 })
@@ -100,7 +107,8 @@ public class AUTOTest1 extends robotBase{
                 .turn(Math.toRadians(90))
 
 
-                .strafeTo(new Vector2d(-49,41))
+                .strafeTo(new Vector2d(-49,37))
+                .waitSeconds(0.5)
                 .addTemporalMarker(() -> {armTarget=0;})
                 .UNSTABLE_addTemporalMarkerOffset(0.1, () -> {Claw.setPosition(claw_Close);
                 })
@@ -110,7 +118,8 @@ public class AUTOTest1 extends robotBase{
                     slideTarget= 40;
                 })
                 .waitSeconds(0.5)
-                .strafeTo(new Vector2d(-49,51))
+
+                .strafeTo(new Vector2d(-49,45))
                 .turn(Math.toRadians(-90))
                 .addTemporalMarker(() -> {
 
@@ -123,22 +132,24 @@ public class AUTOTest1 extends robotBase{
                 })
                 .waitSeconds(0.5)
                 .turn(Math.toRadians(-45))
-                .forward(5)
-                .addTemporalMarker(() -> {
-                    Claw.setPosition(claw_Close);
-                })
-                .UNSTABLE_addTemporalMarkerOffset(0.5, () -> {
-                    armTarget = 90;
-                    slideTarget = 52;
-                    lift = 90;
-                })
-                .strafeTo(new Vector2d(-10, 35))
+                .waitSeconds(1)
 
-                .addTemporalMarker(() -> {
-
-                })
-
-
+//                .forward(5)
+//                .addTemporalMarker(() -> {
+//                    Claw.setPosition(claw_Close);
+//                })
+//                .UNSTABLE_addTemporalMarkerOffset(0.5, () -> {
+//                    armTarget = 90;
+//                    slideTarget = 52;
+//                    lift = 90;
+//                })
+//                .strafeTo(new Vector2d(-10, 35))
+//
+//                .addTemporalMarker(() -> {
+//
+//                })
+//
+//
 
 
                 //.strafeLeft(20)
@@ -159,9 +170,9 @@ public class AUTOTest1 extends robotBase{
 
     @Override
     protected void robotInitLoop() {
-        armPosNow = armL.getCurrentPosition() / arm2deg; // 讀取手臂當前角度
-        armTurn2angle(45);                       // 將手臂維持在目標角度
-        telemetry.addData("Angle",samplevisionprocessor.getTargetAngle());
+        //armPosNow = armL.getCurrentPosition() / arm2deg; // 讀取手臂當前角度
+        armTurn2angle(armStartAngle);                       // 將手臂維持在目標角度
+        //telemetry.addData("Angle",samplevisionprocessor.getTargetAngle());
 
 
     }
@@ -183,11 +194,11 @@ public class AUTOTest1 extends robotBase{
         telemetry.addData("Angle",samplevisionprocessor.getTargetAngle());
 
         telemetry.update();
-        turn=(samplevisionprocessor.getTargetAngle()-90)*-1;
-        armTarget=10;
+        //turn=(samplevisionprocessor.getTargetAngle()-90)*-1;
+        //armTarget=10;
         //drive.update();
-       armTurn2angle(armTarget);
-//        slideToPosition(slideTarget);
+        armTurn2angle(armTarget);
+        slideToPosition(slideTarget);
         wristToPosition(lift, turn);
 
 

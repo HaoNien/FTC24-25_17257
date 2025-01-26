@@ -20,7 +20,7 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 
 @Autonomous
-public class AUTOTestMonkey extends robotBase{
+public class AUTOMonkeyNew extends robotBase{
     //Pose2d startPose = new Pose2d(-8, 60, Math.toRadians(90));
 
     @Override
@@ -36,8 +36,8 @@ public class AUTOTestMonkey extends robotBase{
         lift=-90;
         turn = 0;
         Claw.setPosition(claw_Close);
-        TrajectoryVelocityConstraint velConstraint = new MinVelocityConstraint(Arrays.asList(
-                new TranslationalVelocityConstraint(30),
+         TrajectoryVelocityConstraint velConstraint = new MinVelocityConstraint(Arrays.asList(
+                new TranslationalVelocityConstraint(15),
                 new AngularVelocityConstraint(1)
         ));
 
@@ -48,30 +48,32 @@ public class AUTOTestMonkey extends robotBase{
                 .addTemporalMarker(() ->{
                     lift = 80;
                 })
+                .splineToLinearHeading(new Pose2d(0,28,Math.toRadians(90)),Math.toRadians(270))
+                //put
                 .addTemporalMarker(() ->{
-                    armPowerMax=0.6;
+                    armPowerMax=0.8;
                     turn = 0;
                     armTarget = 81;
                     slideTarget = 43;
                     lift = 80;
                 })
-                .splineToLinearHeading(new Pose2d(0,30,Math.toRadians(90)),Math.toRadians(270))
-                //put
+                .waitSeconds(0.5)
                 .addTemporalMarker(() ->{
                     slideTarget = 85;
                 })
-                .waitSeconds(0.5)
+                .waitSeconds(0.7)
                 .addTemporalMarker(() ->{
                     Claw.setPosition(claw_Open);
                 })
                 .waitSeconds(0.1)
                 .addTemporalMarker(() ->{
                     armPowerMax=0.6;
-                    armTarget= 25;
+                    armTarget= 20;
                     slideTarget = 40;
                     lift=-20;
                     turn = 0;
                 })
+                .waitSeconds(0.2)
                 ////////
 
 
@@ -96,17 +98,11 @@ public class AUTOTestMonkey extends robotBase{
                     Claw.setPosition(claw_Close);
                 })
                 .waitSeconds(0.3)
-//                .addTemporalMarker(() ->{
-//                    slideTarget = 40;
-//                    armTarget= 45;
-//                })
                 .addTemporalMarker(() ->{
-                    armPowerMax=0.6;
-                    turn = 0;
-                    armTarget = 81;
-                    slideTarget = 46;
-                    lift = 80;
+                    slideTarget = 40;
+                    armTarget= 45;
                 })
+
                 .splineToConstantHeading(new Vector2d(-40,40),Math.toRadians(0))
                 .lineTo(new Vector2d(-10,40))
                 .splineToConstantHeading(new Vector2d(2,27),Math.toRadians(270))
@@ -114,76 +110,38 @@ public class AUTOTestMonkey extends robotBase{
 
                 //put
                 .addTemporalMarker(() ->{
-                    slideTarget = 85;
-                })
-                .waitSeconds(0.5)
-                .addTemporalMarker(() ->{
-                    Claw.setPosition(claw_Open);
-                })
-                .waitSeconds(0.2)
-                .addTemporalMarker(() ->{
-                    armPowerMax=0.6;
-                    armTarget= 25;
-                    slideTarget = 40;
-                    lift=-20;
-                    turn = 0;
-                })
-//                .waitSeconds(0.5)
-                ////////
-
-                //------------------------three
-
-                .splineToConstantHeading(new Vector2d(-15,38),Math.toRadians(180))
-                .lineTo(new Vector2d(-30,38))
-                .splineToConstantHeading((new Vector2d(-45,35)),Math.toRadians(90))
-//                .waitSeconds(0.3)
-                .setVelConstraint(velConstraint)
-                .lineTo(new Vector2d(-45,52))
-                .resetVelConstraint()
-
-                .addTemporalMarker(() ->{
-                    Claw.setPosition(claw_Close);
-                })
-//                .waitSeconds(0.3)
-//                .addTemporalMarker(() ->{
-//                    slideTarget = 40;
-//                    armTarget= 45;
-//                })
-                .addTemporalMarker(() ->{
-                    armPowerMax=0.6;
+                    armPowerMax=0.8;
                     turn = 0;
                     armTarget = 81;
                     slideTarget = 46;
                     lift = 80;
                 })
-                .setReversed(true)
-                .splineToConstantHeading(new Vector2d(-20,40),Math.toRadians(0))
-                .lineTo(new Vector2d(-10,40))
-                .splineToConstantHeading(new Vector2d(-3,28),Math.toRadians(270))
-                .setReversed(false)
-
-                //put
+                .waitSeconds(0.5)
                 .addTemporalMarker(() ->{
                     slideTarget = 85;
                 })
-                .waitSeconds(0.5)
+                .waitSeconds(0.7)
                 .addTemporalMarker(() ->{
                     Claw.setPosition(claw_Open);
                 })
                 .waitSeconds(0.2)
+
                 .addTemporalMarker(() ->{
                     armPowerMax=0.6;
-                    armTarget= 25;
+                    armTarget= 20;
                     slideTarget = 40;
                     lift=-20;
                     turn = 0;
                 })
-//                .waitSeconds(0.5)
+                .waitSeconds(0.5)
                 ////////
 
-                //------------------------four
+                //------------------------three
+
 
                 .splineToConstantHeading(new Vector2d(-15,38),Math.toRadians(180))
+
+
                 .lineTo(new Vector2d(-30,38))
                 .splineToConstantHeading((new Vector2d(-45,35)),Math.toRadians(90))
 //                .waitSeconds(0.3)
@@ -195,41 +153,43 @@ public class AUTOTestMonkey extends robotBase{
                     Claw.setPosition(claw_Close);
                 })
                 .waitSeconds(0.3)
-//                .addTemporalMarker(() ->{
-//                    slideTarget = 40;
-//                    armTarget= 45;
-//                })
                 .addTemporalMarker(() ->{
-                    armPowerMax=0.6;
+                    slideTarget = 40;
+                    armTarget= 45;
+                })
+                .setReversed(true)
+                .splineToConstantHeading(new Vector2d(-20,40),Math.toRadians(0))
+                .lineTo(new Vector2d(-10,40))
+                .splineToConstantHeading(new Vector2d(-3,27),Math.toRadians(270))
+                .setReversed(false)
+
+                //put
+                .addTemporalMarker(() ->{
+                    armPowerMax=0.8;
                     turn = 0;
                     armTarget = 81;
                     slideTarget = 46;
                     lift = 80;
                 })
-                .setReversed(true)
-                .splineToConstantHeading(new Vector2d(-20,40),Math.toRadians(0))
-                .lineTo(new Vector2d(-10,40))
-                .splineToConstantHeading(new Vector2d(-3,28),Math.toRadians(270))
-                .setReversed(false)
-
-                //put
+                .waitSeconds(0.5)
                 .addTemporalMarker(() ->{
                     slideTarget = 85;
                 })
-                .waitSeconds(0.5)
+                .waitSeconds(0.7)
                 .addTemporalMarker(() ->{
                     Claw.setPosition(claw_Open);
                 })
                 .waitSeconds(0.2)
                 .addTemporalMarker(() ->{
                     armPowerMax=0.6;
-                    armTarget= 25;
-                    slideTarget = 40;
-                    lift=-20;
+                    armTarget= 20;
+                    slideTarget = 70;
+                    lift=90;
                     turn = 0;
                 })
-//                .waitSeconds(0.5)
+                .waitSeconds(0.5)
                 ////////
+
                 //park
                 .splineTo(new Vector2d(-50,60),Math.toRadians(180))
                 .build();
