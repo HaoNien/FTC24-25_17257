@@ -14,87 +14,67 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 @Config
-@TeleOp(name = " PotatoLinOpMode", group = "Linear OpMode")
+@TeleOp(name = "PotatoLinOpMode", group = "Linear OpMode")
 public class PotatoLinOpMode extends robotBase {
     private final ElapsedTime runtime = new ElapsedTime();
 
+    // 滑軌與手臂速度參數
+    public static double slide_Speed = 10; // 滑軌速度
+    public static double arm_Speed = 5; // 手臂速度
 
-    public static double slide_Speed = 10;
-    public static double arm_Speed = 5;
+    // 時間相關變數
     private long lastTime = System.currentTimeMillis();
     private int loopCount = 0;
     int loopCountHZ = 0;
-    double clawPos = 0.5;
 
+    double clawPos = 0.5; // 爪子初始位置
 
-    // 定義兩個獨立的狀態機
-    private enum RobotStateB {
-        STATE_1, STATE_2, STATE_3, STATE_4, STATE_5, STATE_6, STATE_7
-    }
-    private enum RobotStateC {
-        STATE_1, STATE_2
-    }
+    // 狀態機定義
+    private enum RobotStateB { STATE_1, STATE_2, STATE_3, STATE_4, STATE_5, STATE_6, STATE_7 }
+    private enum RobotStateC { STATE_1, STATE_2 }
+    private enum RobotStateY { STATE_1, STATE_2, STATE_3, STATE_4, STATE_5, STATE_6, STATE_7, STATE_8 }
+    private enum RobotStateX { STATE_1, STATE_2, STATE_3, STATE_4, STATE_5, STATE_6, STATE_7, STATE_8 }
+    private enum RobotStateA { STATE_1, STATE_2 }
+    private enum RobotStateHang { STATE_1, STATE_2, STATE_3, STATE_4, STATE_5 }
 
-    private enum RobotStateY {
-        STATE_1, STATE_2, STATE_3, STATE_4, STATE_5, STATE_6, STATE_7,STATE_8
-    }
+    // 防抖動變數
+    boolean togglePressed = false;
+    boolean cirPressd = false;
 
-    private enum RobotStateX {
-        STATE_1, STATE_2, STATE_3, STATE_4, STATE_5, STATE_6, STATE_7, STATE_8
-    }
-
-    private enum RobotStateA {
-        STATE_1, STATE_2
-    }
-    private enum RobotStateHang {
-        STATE_1, STATE_2, STATE_3, STATE_4,STATE_5
-    }
-
-
-
-    boolean togglePressed = false; // 防抖動變數
-
-    boolean cirPressd=false;
-
+    // 狀態機初始狀態
     private RobotStateB currentStateB = RobotStateB.STATE_6;
     private RobotStateC currentStateC = RobotStateC.STATE_1;
-
     private RobotStateY currentStateY = RobotStateY.STATE_7;
-
     private RobotStateX currentStateX = RobotStateX.STATE_7;
-
     private RobotStateA currentStateA = RobotStateA.STATE_1;
-
     private RobotStateHang currentStateHang = RobotStateHang.STATE_5;
 
+    // 按鈕防抖動與執行狀態
     private boolean wasButtonPressedB = false, stateExecutedB = true;
     private boolean wasButtonPressedC = false, stateExecutedC = true;
     private boolean wasButtonPressedY = false, stateExecutedY = true;
     private boolean wasButtonPressedX = false, stateExecutedX = true;
-
     private boolean wasButtonPressedA = false, stateExecutedA = true;
-
     private boolean wasButtonPressed1X = false, stateExecuted1X = true;
 
-
-
+    @Override
     public void robotInit() {
-        armPowerMax=1;
+        armPowerMax = 1; // 設定手臂最大功率
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        wristToPosition(-90, 0);
+        wristToPosition(-90, 0); // 初始化手腕位置
+
         telemetry.addData("Status", "Initialized");
         telemetry.update();
-
-
     }
 
     @Override
     protected void robotInitLoop() {
-        armTurn2angle(60);
-        wristToPosition(90,0);
-        slideToPosition(40);
-        // 將手臂維持在目標角度
+        armTurn2angle(60); // 手臂初始化角度
+        wristToPosition(90, 0); // 手腕初始化位置
+        slideToPosition(40); // 滑軌初始化位置
+
+        // 顯示初始化狀態
         telemetry.addData("Arm Position", armPosNow);
         telemetry.addData("Target Angle", armTarget);
         telemetry.update();
@@ -102,13 +82,12 @@ public class PotatoLinOpMode extends robotBase {
 
     @Override
     public void robotStart() {
-        armPosNow = armEnc.getCurrentPosition() / armEnc2deg+armOffset;
+        // 更新手臂與滑軌當前位置
+        armPosNow = armEnc.getCurrentPosition() / armEnc2deg + armOffset;
         slidePosNow = (slide.getCurrentPosition() / slide2lenth) * 2 + smin;
 
         long currentTime = System.currentTimeMillis();
-        loopCount++; // 每次迴圈執行時增加計數器(看更新頻率而已
-
-
+        loopCount++; // 計數迴圈次數
 
         // 管理按鈕的狀態機
         manageStateMachineB();
@@ -117,107 +96,87 @@ public class PotatoLinOpMode extends robotBase {
         manageStateMachineA();
         manageStateMachineHang();
 
-        if (gamepad2.left_bumper) Claw.setPosition(claw_Open);//夾子打開
-        if (gamepad2.right_bumper) Claw.setPosition(claw_Close);
+        // 控制爪子
+        if (gamepad2.left_bumper) Claw.setPosition(claw_Open); // 打開爪子
+        if (gamepad2.right_bumper) Claw.setPosition(claw_Close); // 關閉爪子
 
-
-
-        //吊掛模式
+        // 吊掛模式切換
         if (gamepad2.left_stick_button && !togglePressed) {
-            isHangingMode = !isHangingMode; // 切換模式
-            togglePressed = true; // 防抖動
+            isHangingMode = !isHangingMode;
+            togglePressed = true; // 防止抖動
         } else if (!gamepad2.left_stick_button) {
-            togglePressed = false; // 重置防抖動
+            togglePressed = false;
         }
 
-        //手臂伸縮
+        // 手臂伸縮控制
         double gp2_r_Y = gamepad2.right_stick_y;
-
         if (gp2_r_Y > 0.1 || gp2_r_Y < -0.1)
             slideTarget = slidePosNow + (-gp2_r_Y * slide_Speed);
-        slideTarget = clamp(slideTarget,smin,smax);
+        slideTarget = clamp(slideTarget, smin, smax);
 
-
-        if(isHangingMode){
+        if (isHangingMode) {
             slide.setPower(gp2_r_Y);
-            slideOffset=-slidePosNow+40;
-            slideTarget=40;
+            slideOffset = -slidePosNow + 40;
+            slideTarget = 40;
             if (!gamepad1.isRumbling()) gamepad1.runRumbleEffect(effect);
-
-        }
-        else {
+        } else {
             gamepad1.stopRumble();
-
             slideToPosition(slideTarget);
         }
 
-        //手臂上下
+        // 手臂上下控制
         double gp2_l_Y = -gamepad2.left_stick_y;
-
         if (gp2_l_Y < -0.3 || gp2_l_Y > 0.3) armTarget = armPosNow - (gp2_l_Y * arm_Speed);
         armTarget = clamp(armTarget, armBottomLimit, armUpLimit);
 
-        if (isHangingMode){
+        if (isHangingMode) {
             armL.setPower(gp2_l_Y);
             armR.setPower(gp2_l_Y);
-
-        }
-        else {
+        } else {
             armTurn2angle(armTarget);
         }
-        if(gamepad2.right_stick_button){
-            armOffset=-armPosNow;
-            armTarget=0;
+
+        if (gamepad2.right_stick_button) {
+            armOffset = -armPosNow;
+            armTarget = 0;
         }
 
+        // 爪子抬起與旋轉控制
+        if (gamepad2.dpad_up || gamepad1.dpad_up) lift += 5;
+        else if (gamepad2.dpad_down || gamepad1.dpad_down) lift -= 5;
+        lift = clamp(lift, lift_Mini, lift_Max);
 
-        //夾子抬起
-        if (gamepad2.dpad_up||gamepad1.dpad_up) lift += 5;
-        else if (gamepad2.dpad_down||gamepad1.dpad_down) lift -= 5;
-        lift =clamp(lift, lift_Mini, lift_Max);
-        //夾子旋轉
-        if (gamepad2.dpad_left||gamepad1.dpad_left) turn += 10;
-        else if (gamepad2.dpad_right||gamepad1.dpad_right) turn -= 10;
+        if (gamepad2.dpad_left || gamepad1.dpad_left) turn += 10;
+        else if (gamepad2.dpad_right || gamepad1.dpad_right) turn -= 10;
         turn = clamp(turn, turn_Mini, turn_Max);
 
         wristToPosition(lift, turn);
 
-        //底盤遙控
+        // 底盤遙控
         double gp1ly = -gamepad1.left_stick_y;
         double gp1lx = -gamepad1.left_stick_x;
         double gp1rx = -gamepad1.right_stick_x;
         double gp1ltr = gamepad1.left_trigger;
         double gp1rtr = gamepad1.right_trigger;
 
-        double axial, lateral, yaw;
-        //if (Math.abs(gp1ly) < 0.7 && Math.abs(gp1ly) > 0.1) axial = gp1ly / 2;
-        //else if (Math.abs(gp1ly) < 0.1) axial=0;
-         axial = gp1ly;
-        //if (Math.abs(gp1lx) < 0.7 && Math.abs(gp1lx) > 0.1) lateral = gp1lx / 2;
-        //else if (Math.abs(gp1lx) < 0.1) lateral=0;
-         lateral = gp1lx;
-        //if (Math.abs(gp1rx) < 0.7 && Math.abs(gp1rx) > 0.1)
-           // yaw = (gp1rx) + (gp1ltr / 3) - (gp1rtr / 3);
-        //else if (Math.abs(gp1lx) < 0.1) yaw =0;
-        yaw = gp1rx + (gp1ltr / 3) - (gp1rtr / 3);
+        double axial = gp1ly;
+        double lateral = gp1lx;
+        double yaw = gp1rx + (gp1ltr / 3) - (gp1rtr / 3);
         drive.setWeightedDrivePower(new Pose2d(axial, lateral, yaw));
 
-
+        // 顯示迴圈頻率
         telemetry.addData("Loop Frequency", "%d Hz", loopCountHZ);
-        // 每隔一秒計算一次頻率
         if (currentTime - lastTime >= 1000) {
             loopCountHZ = loopCount;
-
-
-            loopCount = 0; // 重置計數器
-            lastTime = currentTime; // 重置時間戳
+            loopCount = 0;
+            lastTime = currentTime;
         }
 
-        //螢幕顯示數值
+        // 顯示數據
         telemetry.addData("slideCM", slidePosNow);
         telemetry.addData("slideTAR", slideTarget);
         telemetry.addData("slidePOW", slidePower);
-        telemetry.addData("slideOffset",slideOffset);
+        telemetry.addData("slideOffset", slideOffset);
         telemetry.addData("slideAmp", slide.getCurrent(CurrentUnit.AMPS));
 
         telemetry.addData("armNOW", armPosNow);
@@ -231,11 +190,10 @@ public class PotatoLinOpMode extends robotBase {
 
         telemetry.addData("lift", lift);
         telemetry.addData("turn", turn);
-
-
         telemetry.update();
     }
 
+    // 狀態機管理函數略（保持完整邏輯）
     // **B 按鈕狀態機邏輯**背勾夾
     private void manageStateMachineC() {
         if (gamepad1.circle && !wasButtonPressedC) {
